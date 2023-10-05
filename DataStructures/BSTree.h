@@ -9,48 +9,75 @@ template<typename T>
 class BSTree
 {
 public:
-    BSTree(const std::function<bool (const T&, const T&)>& comparator);
+    struct TreeNode
+    {
+        TreeNode* leftChild;
+        TreeNode* rightChild;
+
+        T value;
+
+        TreeNode(const T& val) :
+            value(val),
+            leftChild(),
+            rightChild()
+        {
+        }
+
+        ~TreeNode()
+        {
+        }
+    };
+
+public:
+    BSTree();
 
     ~BSTree();
 
     bool isEmpty() const;
 
-    T find(const T& val) const;
     T findMin() const;
 
+    bool find(const T& val) const;
+
     void inorder(std::function<void (T)> traverser) const;
+    
     void insert(const T& value);
 
     void remove(const T& value);
+
     T removeMin();
 
-private:
-    void _insert(const T& val, TreeNode<T>* node);
-
-    TreeNode<T>* _findMin(TreeNode<T>* node) const;
+    int height() const;
     
-    void _remove(const T& val, TreeNode<T>* & node);
+private:
+    void destroy(TreeNode*& node);
+
+    bool _find(const T& val, TreeNode* node) const;
     
-    void _inorder(TreeNode<T>* node, std::function<void (T)> traverser) const;
+    void _insert(const T& val, TreeNode*& node);
+
+    TreeNode* _findMin(TreeNode* node) const;
+    
+    void _remove(const T& val, TreeNode* & node);
+    
+    void _inorder(TreeNode* node, std::function<void (T)> traverser) const;
+
+    int _height(TreeNode* node) const;
 
 private:
-    TreeNode<T>* m_root;
-
-    /// @brief return < 0 if smaller, > 0 if larger, == 0 if equal
-    std::function<int (const T&, const T&)> m_comparator;
+    TreeNode* m_root;
 };
 
 template <typename T>
-inline BSTree<T>::BSTree(const std::function<bool(const T &, const T &)>& comparator) :
-    m_comparator(comparator), m_root(nullptr)
+inline BSTree<T>::BSTree() :
+    m_root(nullptr)
 {
 }
 
 template <typename T>
 inline BSTree<T>::~BSTree()
 {
-    if (m_root)
-        delete m_root;
+    destroy(m_root);
 }
 
 template <typename T>
@@ -60,23 +87,28 @@ inline bool BSTree<T>::isEmpty() const
 }
 
 template <typename T>
-inline T BSTree<T>::find(const T &val) const
+void BSTree<T>::destroy(TreeNode *&node)
 {
-    TreeNode<T>* root = m_root;
-
-    while (root)
+    if (node)
     {
-        int res = m_comparator(val, m_root->value);
-
-        if (res < 0)
-            root = root->leftChild;
-        else if (res > 0)
-            root = root->rightChild;
-        else
-            return root->value;
+        destroy(node->leftChild);
+        destroy(node->rightChild);
+        delete node;
     }
+}
 
-    return T();
+template <typename T>
+inline bool BSTree<T>::_find(const T &val, TreeNode *node) const
+{
+    if (!node)
+        return false;
+
+    if (val < node->value)
+        return _find(val, node->leftChild);
+    else if (val > node->value)
+        return _find(val, node->rightChild);
+    else
+        return true;
 }
 
 template <typename T>
@@ -84,6 +116,12 @@ T BSTree<T>::findMin() const
 {
     auto node = _findMin(m_root);
     return node ? node->value : T();
+}
+
+template <typename T>
+bool BSTree<T>::find(const T &val) const
+{
+    return _find(val, m_root);
 }
 
 template <typename T>
@@ -96,39 +134,12 @@ template <typename T>
 void BSTree<T>::insert(const T &value)
 {
     _insert(value, m_root);
-    // if (!m_root)
-    // {
-    //     m_root = new TreeNode<T>(value);
-    // }
-    // else
-    // {
-    //     int result;
-    //     TreeNode<T>* node = m_root, *p;
-    //     while (node)
-    //     {
-    //         p = node;
-    //         result = m_comparator(value, p->value);
-
-    //         if (result > 0)
-    //             node = p->rightChild;
-    //         else if (result < 0)
-    //             node = p->leftChild;
-    //         else
-    //             return;
-    //     }
-
-    //     if (result > 0)
-    //         p->rightChild = new TreeNode<T>(value);
-    //     else
-    //         p->leftChild = new TreeNode<T>(value);
-    // }
 }
 
 template <typename T>
 void BSTree<T>::remove(const T &value)
 {
-    auto* root = m_root;
-    _remove(value, root);
+    _remove(value, m_root);
 }
 
 template <typename T>
@@ -140,70 +151,55 @@ T BSTree<T>::removeMin()
 }
 
 template <typename T>
-void BSTree<T>::_insert(const T &val, TreeNode<T> *node)
+inline int BSTree<T>::height() const
 {
-    if (!m_root)
+    return _height(m_root);
+}
+
+template <typename T>
+void BSTree<T>::_insert(const T &val, TreeNode*& node)
+{
+    if (!node)
     {
-        m_root = new TreeNode<T>(val);
+        node = new TreeNode(val);
     }
-    else if (m_comparator(val, node->value) < 0)
+    else if (val < node->value)
     {
-        if (node->leftChild)
-        {
-            _insert(val, node->leftChild);
-        }
-        else
-        {
-            node->leftChild = new TreeNode<T>(val);
-        }
+        _insert(val, node->leftChild);
     }
-    else if (m_comparator(val, node->value) > 0)
+    else if (val > node->value)
     {
-        if (node->rightChild)
-        {
-            _insert(val, node->rightChild);
-        }
-        else
-        {
-            node->rightChild = new TreeNode<T>(val);
-        }
-    }
-    else
-    {
-        return;
+        _insert(val, node->rightChild);
     }
 }
 
 template <typename T>
-TreeNode<T> *BSTree<T>::_findMin(TreeNode<T> *node) const
+typename BSTree<T>::TreeNode *BSTree<T>::_findMin(TreeNode *node) const
 {
-    if (!node)
-        return nullptr;
-
-    while (node->leftChild)
+    while (node && node->leftChild)
         node = node->leftChild;    
 
     return node;
 }
 
 template <typename T>
-void BSTree<T>::_remove(const T &val, TreeNode<T> *&node)
+void BSTree<T>::_remove(const T &val, TreeNode *&node)
 {
-    using std::cout; using std::endl;
-    cout << "Removing value " << val << endl;
-
     if (!node)
         return;
 
-    int result = m_comparator(val, node->value);
-
-    if (result < 0)
+    if (val < node->value)
         _remove(val, node->leftChild);
-    else if (result > 0)
+    else if (val > node->value)
         _remove(val, node->rightChild);
     else
     {
-        if (!node->leftChild)
+        if (!node->leftChild && !node->rightChild)
+        {
+            delete node;
+            node = nullptr;
+        }
+        else if (!node->leftChild)
         {
             auto* old = node;
             node = old->rightChild;
@@ -222,11 +218,10 @@ void BSTree<T>::_remove(const T &val, TreeNode<T> *&node)
             _remove(minNodeInRightSubTree->value, node->rightChild);
         }
     }
-
 }
 
 template <typename T>
-void BSTree<T>::_inorder(TreeNode<T> *node, std::function<void (T)> traverser) const
+void BSTree<T>::_inorder(TreeNode *node, std::function<void (T)> traverser) const
 {
     if (!node)
     {
@@ -240,4 +235,13 @@ void BSTree<T>::_inorder(TreeNode<T> *node, std::function<void (T)> traverser) c
     
     if (node->rightChild)
         _inorder(node->rightChild, traverser);
+}
+
+template <typename T>
+int BSTree<T>::_height(TreeNode *node) const
+{
+    if (!node)
+        return -1;
+    
+    return std::max(_height(node->leftChild), _height(node->rightChild)) + 1;
 }
