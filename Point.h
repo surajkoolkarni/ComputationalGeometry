@@ -24,6 +24,16 @@ struct Point
         return !(p == *this);
     }
 
+    bool operator< (const Point& p) const
+    {
+        return x < p.x;
+    }
+
+    bool operator> (const Point& p) const
+    {
+        return x > p.x;
+    }
+
     friend Point operator+ (const Point& p, const Point& q)
     {
         Point r;

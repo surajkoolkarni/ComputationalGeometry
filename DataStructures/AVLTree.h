@@ -18,8 +18,8 @@ public:
         AVLNode* rightChild;
 
         AVLNode(const T& val) :
-            balanceFactor(),
-            height(),
+            balanceFactor(0),
+            height(-1),
             value(val)
         {
         }
@@ -45,9 +45,13 @@ public:
     int height() const;
 
     T removeMin();
+
+    T predecessor(const T& val) const;
+
+    T successor(const T& val) const;
      
 private:
-    void update(AVLNode*& node);
+    void update(AVLNode* node);
 
     AVLNode* balance(AVLNode*& node);
 
@@ -64,6 +68,10 @@ private:
     void _inorder(AVLNode* node, std::function<void (T)> traverser) const;
 
     int _height(AVLNode* node) const;
+
+    void _predecessor(const T& val, AVLNode* node, T& predecessorVal) const;
+
+    void _successor(const T& val, AVLNode* node, T& successorVal) const;
 
 private:
     AVLNode* leftLeftCase(AVLNode* node);
@@ -143,12 +151,28 @@ T AVLTree<T>::removeMin()
 }
 
 template <typename T>
-void AVLTree<T>::update(AVLNode *&node)
+inline T AVLTree<T>::predecessor(const T &val) const
 {
-    int leftNodeHeight = (!node->leftChild) ? -1 : node->leftChild->height;
-    int rightNodeHeight = (!node->rightChild) ? -1 : node->rightChild->height;
+    T predecessorVal = val;
+    _predecessor(val, m_root, predecessorVal);
+    return predecessorVal;
+}
 
-    node->height = 1 + std::max(leftNodeHeight, rightNodeHeight);
+template <typename T>
+inline T AVLTree<T>::successor(const T &val) const
+{
+    T successorVal = val;
+    _successor(val, m_root, successorVal);
+    return successorVal;
+}
+
+template <typename T>
+void AVLTree<T>::update(AVLNode *node)
+{
+    int leftNodeHeight = _height(node->leftChild); // (!node->leftChild) ? -1 : node->leftChild->height;
+    int rightNodeHeight = _height(node->rightChild); // (!node->rightChild) ? -1 : node->rightChild->height;
+
+    node->height = _height(node); // 1 + std::max(leftNodeHeight, rightNodeHeight);
 
     node->balanceFactor = rightNodeHeight - leftNodeHeight;
 }
@@ -282,8 +306,64 @@ int AVLTree<T>::_height(AVLNode *node) const
 {
     if (!node)
         return -1;
-    
+
     return std::max(_height(node->leftChild), _height(node->rightChild)) + 1;
+}
+
+template <typename T>
+void AVLTree<T>::_predecessor(const T &val, AVLNode *node, T& predecessorVal) const
+{
+    if (!node)
+        return;
+
+    if (node->value == val)
+    {
+        if (node->leftChild)
+        {
+            AVLNode* n = node->leftChild;
+            while (n->rightChild)
+                n = n->rightChild;
+
+            predecessorVal = n->value;
+        }
+    }
+    else if (node->value > val)
+    {
+        _predecessor(val, node->leftChild, predecessorVal);
+    }
+    else
+    {
+        predecessorVal = node->value;
+        _predecessor(val, node->rightChild, predecessorVal);
+    }
+}
+
+template <typename T>
+void AVLTree<T>::_successor(const T &val, AVLNode *node, T& successorVal) const
+{
+    if (!node)
+        return;
+    
+    if (node->value == val)
+    {
+        if (node->rightChild)
+        {
+            AVLNode* n = node->rightChild;
+            while (n->leftChild)
+                n = n->leftChild;
+
+            successorVal = n->value;
+        }
+    }
+    else if (node->value > val)
+    {
+        successorVal = node->value;
+        _successor(val, node->leftChild, successorVal);
+    }
+    else
+    {
+        _successor(val, node->rightChild, successorVal);
+    }
 }
 
 template <typename T>
