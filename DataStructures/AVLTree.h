@@ -1,6 +1,6 @@
 #pragma once
 
-#include "BSTree.h"
+#include <functional>
 
 template <typename T>
 class AVLTree
@@ -17,10 +17,14 @@ public:
         AVLNode* leftChild;
         AVLNode* rightChild;
 
+        AVLNode() = default;
+
         AVLNode(const T& val) :
             balanceFactor(0),
-            height(-1),
-            value(val)
+            height(0),
+            value(val),
+            leftChild(nullptr),
+            rightChild(nullptr)
         {
         }
     };
@@ -51,7 +55,7 @@ public:
     T successor(const T& val) const;
      
 private:
-    void update(AVLNode* node);
+    void update(AVLNode*& node);
 
     AVLNode* balance(AVLNode*& node);
 
@@ -62,8 +66,9 @@ private:
     AVLNode* _insert(const T& val, AVLNode*& node);
 
     AVLNode* _findMin(AVLNode* node) const;
+    AVLNode* _findMax(AVLNode* node) const;
     
-    void _remove(const T& val, AVLNode* & node);
+    AVLNode* _remove(const T& val, AVLNode* & node);
     
     void _inorder(AVLNode* node, std::function<void (T)> traverser) const;
 
@@ -167,12 +172,15 @@ inline T AVLTree<T>::successor(const T &val) const
 }
 
 template <typename T>
-void AVLTree<T>::update(AVLNode *node)
+void AVLTree<T>::update(AVLNode*& node)
 {
-    int leftNodeHeight = _height(node->leftChild); // (!node->leftChild) ? -1 : node->leftChild->height;
-    int rightNodeHeight = _height(node->rightChild); // (!node->rightChild) ? -1 : node->rightChild->height;
+    if (!node)
+        return;
 
-    node->height = _height(node); // 1 + std::max(leftNodeHeight, rightNodeHeight);
+    int leftNodeHeight = (!node->leftChild) ? -1 : node->leftChild->height;
+    int rightNodeHeight = (!node->rightChild) ? -1 : node->rightChild->height;
+
+    node->height =  1 + std::max(leftNodeHeight, rightNodeHeight);
 
     node->balanceFactor = rightNodeHeight - leftNodeHeight;
 }
@@ -248,46 +256,56 @@ typename AVLTree<T>::AVLNode *AVLTree<T>::_findMin(AVLNode *node) const
     return node;
 }
 
+template<typename T>
+typename AVLTree<T>::AVLNode* AVLTree<T>::_findMax(AVLNode *node) const
+{
+    while (node && node->rightChild)
+        node = node->rightChild;
+    
+    return node;
+}
+
 template <typename T>
-void AVLTree<T>::_remove(const T &val, AVLNode *&node)
+typename AVLTree<T>::AVLNode* AVLTree<T>::_remove(const T &val, AVLNode *&node)
 {
     if (!node)
-        return;
+        return nullptr;
 
     if (val < node->value)
-        _remove(val, node->leftChild);
+        node->leftChild = _remove(val, node->leftChild);
     else if (val > node->value)
-        _remove(val, node->rightChild);
+        node->rightChild = _remove(val, node->rightChild);
     else
     {
-        if (!node->leftChild && !node->rightChild)
+
+        if (!node->leftChild)
         {
-            delete node;
-            node = nullptr;
-        }
-        else if (!node->leftChild)
-        {
-            auto* old = node;
-            node = old->rightChild;
-            delete old;
+            return node->rightChild;
         }
         else if (!node->rightChild)
         {
-            auto* old = node;
-            node = old->leftChild;
-            delete old;
+            return node->leftChild;
         }
         else
         {
-            auto* minNodeInRightSubTree = _findMin(node->rightChild);
-            node->value = minNodeInRightSubTree->value;
-            _remove(minNodeInRightSubTree->value, node->rightChild);
+            if (node->leftChild->height > node->rightChild->height)
+            {
+                AVLNode *temp = _findMax(node->leftChild);
+                node->value = temp->value;
+                node->leftChild = _remove(temp->value, node->leftChild);
+            }
+            else
+            {
+                AVLNode* temp = _findMin(node->rightChild);
+                node->value = temp->value;
+                node->rightChild = _remove(temp->value, node->rightChild);
+            }
         }
     }
 
     update(node);
 
-    balance(node);
+    return balance(node);
 }
 
 template <typename T>
@@ -307,7 +325,7 @@ int AVLTree<T>::_height(AVLNode *node) const
     if (!node)
         return -1;
 
-    return std::max(_height(node->leftChild), _height(node->rightChild)) + 1;
+    return 1 + std::max(_height(node->leftChild), _height(node->rightChild));
 }
 
 template <typename T>

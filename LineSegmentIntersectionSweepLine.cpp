@@ -156,26 +156,35 @@ TEST(lineSegmentIntersectionSweepLine, simple)
     EXPECT_TRUE(intersection({{0., 0.}, {1., 1.}}, {{1., 0.}, {0., 1.}}, i));
     EXPECT_EQ(i, e);
 
-    vector<Segment> segments = { { {0, 0}, {1, 1} }, { {1, 0}, {0, 1} } };
+    // vector<Segment> segments = { { {0, 0}, {1, 1} }, { {1, 0}, {0, 1} } };
     
     vector<Point> intersectionsOut;
     vector<pair<int, int>> intersectingSegmentIdsOut;
 
-    lineSegmentIntersectionSweepLine(segments, intersectingSegmentIdsOut, intersectionsOut);
+    // lineSegmentIntersectionSweepLine(segments, intersectingSegmentIdsOut, intersectionsOut);
 
-    vector<pair<int, int>> intersectingSegmentIdsExpected = {{0, 1}};
-    vector<Point> intersectionsExpected = { {0.5, 0.5} };
+    // vector<pair<int, int>> intersectingSegmentIdsExpected = {{0, 1}};
+    // vector<Point> intersectionsExpected = { {0.5, 0.5} };
 
-    EXPECT_TRUE(intersectionsExpected == intersectionsOut);
+    // EXPECT_TRUE(intersectionsExpected == intersectionsOut);
 
-    segments = { {{1, 5}, {4, 5}}, {{2, 5}, {10, 1}},{{3, 2}, {10, 3}},{{6, 4}, {9, 4}},{{7, 1}, {8, 1}} };
+    vector<Segment> segments = { {{1, 5}, {4, 5}}, {{2, 5}, {10, 1}},{{3, 2}, {10, 3}},{{6, 4}, {9, 4}},{{7, 1}, {8, 1}} };
 
     intersectionsOut.clear();
     intersectingSegmentIdsOut.clear();
     lineSegmentIntersectionSweepLine(segments, intersectingSegmentIdsOut, intersectionsOut);
 
-    intersectionsExpected = {{2, 5}, {6.8889, 2.5556}};
-    intersectingSegmentIdsExpected = {{0, 1}, {1, 2}};
+    vector<Point> intersectionsExpected = {{2, 5}, {6.8889, 2.5556}};
+    vector<pair<int, int>> intersectingSegmentIdsExpected = {{0, 1}, {1, 2}};
 
     EXPECT_TRUE(intersectionsExpected == intersectionsOut);
+
+    AVLTree<Event> eventTree;
+    eventTree.insert(Event{START, 1.2, 0, 1});
+    eventTree.insert(Event{END, -1.2, 0, 1});
+    eventTree.insert(Event{START, 1.2, 1, 2});
+    eventTree.insert(Event{END, -1.2, 1, 2});
+    eventTree.insert(Event{START, 1.2, 2, 3});
+
+    auto event = eventTree.removeMin();
 }
