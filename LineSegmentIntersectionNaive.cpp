@@ -15,9 +15,7 @@ void lineSegmentIntersectionNaive(const vector<Segment>& segments, vector<pair<i
     Point p;
 
     for (int i = 0; i < segments.size(); ++i)
-    {
-        vector<bool> visited(false, segments.size());
-        
+    {        
         for (int j = i + 1; j < segments.size(); ++j)
         {
             if (intersection(segments[i], segments[j], p))

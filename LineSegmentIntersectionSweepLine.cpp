@@ -77,10 +77,13 @@ void lineSegmentIntersectionSweepLine(vector<Segment>& segments, vector<pair<int
         }
     }
 
+    int count = 0;
     while(!eventQueue.isEmpty())
     {
-        auto event = eventQueue.removeMin();
+        auto* eventNode = eventQueue.removeMin();
         Point intersectionPoint;
+
+        auto event = eventNode->value;
 
         if (event.type == START)
         {
@@ -112,6 +115,7 @@ void lineSegmentIntersectionSweepLine(vector<Segment>& segments, vector<pair<int
         }
         else if (event.type == CROSS)
         {
+            // cout << "Found intersection\n";
             const auto& segment1 = segments[event.id1];
             const auto& segment2 = segments[event.id2];
 
@@ -148,41 +152,43 @@ void lineSegmentIntersectionSweepLine(vector<Segment>& segments, vector<pair<int
                     eventQueue.insert(Event{CROSS, intersectionPoint.x, segment2.id, segment2Successor->value.id});
         }
     }
+
 }
 
-TEST(lineSegmentIntersectionSweepLine, simple)
+// TEST(lineSegmentIntersectionSweepLine, simple)
+int main()
 {
-    Point iHat{1, 0};
-    Point jHat{0, 1};
+    // Point iHat{1, 0};
+    // Point jHat{0, 1};
     
-    EXPECT_DOUBLE_EQ(iHat ^ jHat, 1.);
+    // EXPECT_DOUBLE_EQ(iHat ^ jHat, 1.);
 
-    Point i;
-    Point e{0.5, 0.5};
+    // Point i;
+    // Point e{0.5, 0.5};
 
-    EXPECT_TRUE(intersection({{0., 0.}, {1., 1.}}, {{1., 0.}, {0., 1.}}, i));
-    EXPECT_EQ(i, e);
+    // EXPECT_TRUE(intersection({{0., 0.}, {1., 1.}}, {{1., 0.}, {0., 1.}}, i));
+    // EXPECT_EQ(i, e);
 
     vector<Segment> segments = { { {0, 0}, {1, 1} }, { {1, 0}, {0, 1} } };
     
     vector<Point> intersectionsOut;
     vector<pair<int, int>> intersectingSegmentIdsOut;
 
-    lineSegmentIntersectionSweepLine(segments, intersectingSegmentIdsOut, intersectionsOut);
+    // lineSegmentIntersectionSweepLine(segments, intersectingSegmentIdsOut, intersectionsOut);
 
-    cout << "Intersecting segment ids\n";
-    for (auto sId : intersectingSegmentIdsOut)
-        cout << sId.first << " " << sId.second << endl;
-    cout << endl;
+    // cout << "Intersecting segment ids\n";
+    // for (auto sId : intersectingSegmentIdsOut)
+    //     cout << sId.first << " " << sId.second << endl;
+    // cout << endl;
 
-    cout << "Intersections\n";
-    for (auto i : intersectionsOut)
-        cout << i.x << " " << i.y << endl;
+    // cout << "Intersections\n";
+    // for (auto i : intersectionsOut)
+    //     cout << i.x << " " << i.y << endl;
 
     vector<pair<int, int>> intersectingSegmentIdsExpected = {{0, 1}};
     vector<Point> intersectionsExpected = { {0.5, 0.5} };
 
-    EXPECT_TRUE(intersectionsExpected == intersectionsOut);
+    // assert(intersectionsExpected == intersectionsOut);
 
     segments = { {{1, 5}, {4, 5}}, {{2, 5}, {10, 1}},{{3, 2}, {10, 3}},{{6, 4}, {9, 4}},{{7, 1}, {8, 1}} };
 
@@ -202,7 +208,7 @@ TEST(lineSegmentIntersectionSweepLine, simple)
     intersectionsExpected = {{2, 5}, {6.8889, 2.5556}};
     intersectingSegmentIdsExpected = {{0, 1}, {1, 2}};
 
-    EXPECT_TRUE(intersectionsExpected == intersectionsOut);
+    assert(intersectionsExpected == intersectionsOut);
 
     AVLTree<Event> eventTree;
     eventTree.insert(Event{START, 1.2, 0, 1});

@@ -48,7 +48,7 @@ public:
 
     int height() const;
 
-    T removeMin();
+    AVLNode* removeMin();
 
     AVLNode* predecessor(const T& val) const;
 
@@ -74,9 +74,9 @@ private:
 
     int _height(AVLNode* node) const;
 
-    void _predecessor(const T& val, AVLNode* node, AVLNode* predecessorNode) const;
+    void _predecessor(const T& val, AVLNode* node, AVLNode** predecessorNode) const;
 
-    void _successor(const T& val, AVLNode* node, AVLNode* successorNode) const;
+    void _successor(const T& val, AVLNode* node, AVLNode** successorNode) const;
 
 private:
     AVLNode* leftLeftCase(AVLNode* node);
@@ -148,18 +148,21 @@ inline int AVLTree<T>::height() const
 }
 
 template <typename T>
-T AVLTree<T>::removeMin()
+typename AVLTree<T>::AVLNode* AVLTree<T>::removeMin()
 {
-    auto val = findMin();
-    remove(val);
-    return val;
+    auto* minNode = _findMin(m_root);
+
+    if (minNode)
+        remove(minNode->value);
+    
+    return minNode;
 }
 
 template <typename T>
 inline typename AVLTree<T>::AVLNode* AVLTree<T>::predecessor(const T &val) const
 {
     AVLNode* predecessorNode = nullptr;
-    _predecessor(val, m_root, predecessorNode);
+    _predecessor(val, m_root, &predecessorNode);
     return predecessorNode;
 }
 
@@ -167,7 +170,7 @@ template <typename T>
 inline typename AVLTree<T>::AVLNode* AVLTree<T>::successor(const T &val) const
 {
     AVLNode* successorNode = nullptr;
-    _successor(val, m_root, successorNode);
+    _successor(val, m_root, &successorNode);
     return successorNode;
 }
 
@@ -329,7 +332,7 @@ int AVLTree<T>::_height(AVLNode *node) const
 }
 
 template <typename T>
-void AVLTree<T>::_predecessor(const T &val, AVLNode *node, AVLNode* predecessorNode) const
+void AVLTree<T>::_predecessor(const T &val, AVLNode *node, AVLNode** predecessorNode) const
 {
     if (!node)
         return;
@@ -342,7 +345,7 @@ void AVLTree<T>::_predecessor(const T &val, AVLNode *node, AVLNode* predecessorN
             while (n->rightChild)
                 n = n->rightChild;
 
-            predecessorNode = n;
+            *predecessorNode = n;
         }
     }
     else if (node->value > val)
@@ -351,13 +354,13 @@ void AVLTree<T>::_predecessor(const T &val, AVLNode *node, AVLNode* predecessorN
     }
     else
     {
-        predecessorNode = node;
+        *predecessorNode = node;
         _predecessor(val, node->rightChild, predecessorNode);
     }
 }
 
 template <typename T>
-void AVLTree<T>::_successor(const T &val, AVLNode *node, AVLNode* successorNode) const
+void AVLTree<T>::_successor(const T &val, AVLNode *node, AVLNode** successorNode) const
 {
     if (!node)
         return;
@@ -370,12 +373,12 @@ void AVLTree<T>::_successor(const T &val, AVLNode *node, AVLNode* successorNode)
             while (n->leftChild)
                 n = n->leftChild;
 
-            successorNode = n;
+            *successorNode = n;
         }
     }
     else if (node->value > val)
     {
-        successorNode = node;
+        *successorNode = node;
         _successor(val, node->leftChild, successorNode);
     }
     else

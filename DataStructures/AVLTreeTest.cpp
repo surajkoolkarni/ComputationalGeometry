@@ -24,23 +24,23 @@ int main()
     cout << endl;
 
 
-    cout << tree.predecessor(3) << endl;
-    cout << tree.successor(3) << endl;
+    cout << tree.predecessor(3)->value << endl;
+    cout << tree.successor(3)->value << endl;
     cout << endl;
 
     // cout << tree.m_root->value << endl;
     cout << endl;
 
-    cout << tree.predecessor(0) << endl;
-    cout << tree.successor(0) << endl;
+    // cout << tree.predecessor(0)->value << endl;
+    cout << tree.successor(0)->value << endl;
     cout << endl;
 
-    cout << tree.predecessor(1) << endl;
-    cout << tree.successor(1) << endl;
+    cout << tree.predecessor(1)->value << endl;
+    cout << tree.successor(1)->value << endl;
     cout << endl;
 
-    cout << tree.predecessor(7) << endl;
-    cout << tree.successor(7) << endl;
+    cout << tree.predecessor(7)->value << endl;
+    // cout << tree.successor(7)->value << endl;
     cout << endl;
 
     AVLTree<Point> pointTree;
