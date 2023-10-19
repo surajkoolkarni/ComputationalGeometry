@@ -85,25 +85,28 @@ void lineSegmentIntersectionSweepLine(vector<Segment>& segments, vector<pair<int
         if (event.type == START)
         {
             const auto& segment = segments[event.id1];
-            const auto& successor = segmentTree.successor(segment);
-            const auto& predecessor = segmentTree.predecessor(segment);
+            const auto* successor = segmentTree.successor(segment);
+            const auto* predecessor = segmentTree.predecessor(segment);
             
             segmentTree.insert(segments[segment.id]);
 
-            if (intersection(segment, successor, intersectionPoint))
-                eventQueue.insert(Event{CROSS, intersectionPoint.x, segment.id, successor.id});
+            if (successor)
+                if (intersection(segment, successor->value, intersectionPoint))
+                    eventQueue.insert(Event{CROSS, intersectionPoint.x, segment.id, successor->value.id});
 
-            if (intersection(segment, predecessor, intersectionPoint))
-                eventQueue.insert(Event{CROSS, intersectionPoint.x, predecessor.id, segment.id});
+            if (predecessor)
+                if (intersection(segment, predecessor->value, intersectionPoint))
+                    eventQueue.insert(Event{CROSS, intersectionPoint.x, predecessor->value.id, segment.id});
         }
         else if (event.type == END)
         {
             const auto& segment = segments[event.id1];
-            const auto& successor = segmentTree.successor(segment);
-            const auto& predecessor = segmentTree.predecessor(segment);
+            const auto* successor = segmentTree.successor(segment);
+            const auto* predecessor = segmentTree.predecessor(segment);
             
-            if (intersection(predecessor, successor, intersectionPoint))
-                eventQueue.insert(Event{CROSS, intersectionPoint.x, predecessor.id, successor.id});
+            if (predecessor && successor)
+                if (intersection(predecessor->value, successor->value, intersectionPoint))
+                    eventQueue.insert(Event{CROSS, intersectionPoint.x, predecessor->value.id, successor->value.id});
 
             segmentTree.remove(segment);
         }
@@ -122,23 +125,27 @@ void lineSegmentIntersectionSweepLine(vector<Segment>& segments, vector<pair<int
             segmentTree.insert(segment2);
             segmentTree.insert(segment1);
 
-            const auto& segment1Successor = segmentTree.successor(segment1);
-            const auto& segment1Predecessor = segmentTree.predecessor(segment1);
+            const auto* segment1Successor = segmentTree.successor(segment1);
+            const auto* segment1Predecessor = segmentTree.predecessor(segment1);
 
-            if (intersection(segment1Predecessor, segment1, intersectionPoint))
-                eventQueue.insert(Event{CROSS, intersectionPoint.x, segment1Predecessor.id, segment1.id});
+            if (segment1Predecessor)
+                if (intersection(segment1Predecessor->value, segment1, intersectionPoint))
+                    eventQueue.insert(Event{CROSS, intersectionPoint.x, segment1Predecessor->value.id, segment1.id});
 
-            if (intersection(segment1, segment1Successor, intersectionPoint))
-                eventQueue.insert(Event{CROSS, intersectionPoint.x, segment1.id, segment1Successor.id});
+            if (segment1Successor)
+                if (intersection(segment1, segment1Successor->value, intersectionPoint))
+                    eventQueue.insert(Event{CROSS, intersectionPoint.x, segment1.id, segment1Successor->value.id});
 
-            const auto& segment2Successor = segmentTree.successor(segment2);
-            const auto& segment2Predecessor = segmentTree.predecessor(segment2);
+            const auto* segment2Successor = segmentTree.successor(segment2);
+            const auto* segment2Predecessor = segmentTree.predecessor(segment2);
 
-            if (intersection(segment2Predecessor, segment2, intersectionPoint))
-                eventQueue.insert(Event{CROSS, intersectionPoint.x, segment2Predecessor.id, segment2.id});
+            if (segment2Predecessor)
+                if (intersection(segment2Predecessor->value, segment2, intersectionPoint))
+                    eventQueue.insert(Event{CROSS, intersectionPoint.x, segment2Predecessor->value.id, segment2.id});
 
-            if (intersection(segment2, segment2Successor, intersectionPoint))
-                eventQueue.insert(Event{CROSS, intersectionPoint.x, segment2.id, segment2Successor.id});
+            if (segment2Successor)
+                if (intersection(segment2, segment2Successor->value, intersectionPoint))
+                    eventQueue.insert(Event{CROSS, intersectionPoint.x, segment2.id, segment2Successor->value.id});
         }
     }
 }
@@ -156,26 +163,44 @@ TEST(lineSegmentIntersectionSweepLine, simple)
     EXPECT_TRUE(intersection({{0., 0.}, {1., 1.}}, {{1., 0.}, {0., 1.}}, i));
     EXPECT_EQ(i, e);
 
-    // vector<Segment> segments = { { {0, 0}, {1, 1} }, { {1, 0}, {0, 1} } };
+    vector<Segment> segments = { { {0, 0}, {1, 1} }, { {1, 0}, {0, 1} } };
     
     vector<Point> intersectionsOut;
     vector<pair<int, int>> intersectingSegmentIdsOut;
 
-    // lineSegmentIntersectionSweepLine(segments, intersectingSegmentIdsOut, intersectionsOut);
+    lineSegmentIntersectionSweepLine(segments, intersectingSegmentIdsOut, intersectionsOut);
 
-    // vector<pair<int, int>> intersectingSegmentIdsExpected = {{0, 1}};
-    // vector<Point> intersectionsExpected = { {0.5, 0.5} };
+    cout << "Intersecting segment ids\n";
+    for (auto sId : intersectingSegmentIdsOut)
+        cout << sId.first << " " << sId.second << endl;
+    cout << endl;
 
-    // EXPECT_TRUE(intersectionsExpected == intersectionsOut);
+    cout << "Intersections\n";
+    for (auto i : intersectionsOut)
+        cout << i.x << " " << i.y << endl;
 
-    vector<Segment> segments = { {{1, 5}, {4, 5}}, {{2, 5}, {10, 1}},{{3, 2}, {10, 3}},{{6, 4}, {9, 4}},{{7, 1}, {8, 1}} };
+    vector<pair<int, int>> intersectingSegmentIdsExpected = {{0, 1}};
+    vector<Point> intersectionsExpected = { {0.5, 0.5} };
+
+    EXPECT_TRUE(intersectionsExpected == intersectionsOut);
+
+    segments = { {{1, 5}, {4, 5}}, {{2, 5}, {10, 1}},{{3, 2}, {10, 3}},{{6, 4}, {9, 4}},{{7, 1}, {8, 1}} };
 
     intersectionsOut.clear();
     intersectingSegmentIdsOut.clear();
     lineSegmentIntersectionSweepLine(segments, intersectingSegmentIdsOut, intersectionsOut);
 
-    vector<Point> intersectionsExpected = {{2, 5}, {6.8889, 2.5556}};
-    vector<pair<int, int>> intersectingSegmentIdsExpected = {{0, 1}, {1, 2}};
+    cout << "Intersecting segment ids\n";
+    for (auto sId : intersectingSegmentIdsOut)
+        cout << sId.first << " " << sId.second << endl;
+    cout << endl;
+
+    cout << "Intersections\n";
+    for (auto i : intersectionsOut)
+        cout << i.x << " " << i.y << endl;
+
+    intersectionsExpected = {{2, 5}, {6.8889, 2.5556}};
+    intersectingSegmentIdsExpected = {{0, 1}, {1, 2}};
 
     EXPECT_TRUE(intersectionsExpected == intersectionsOut);
 
