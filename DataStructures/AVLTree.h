@@ -12,7 +12,7 @@ public:
 
         int height;
 
-        T value;
+        T key;
 
         AVLNode* leftChild;
         AVLNode* rightChild;
@@ -22,7 +22,7 @@ public:
         AVLNode(const T& val) :
             balanceFactor(0),
             height(0),
-            value(val),
+            key(val),
             leftChild(nullptr),
             rightChild(nullptr)
         {
@@ -36,15 +36,16 @@ public:
 
     bool isEmpty() const;
 
-    T findMin() const;
+    AVLNode* min() const;
+    AVLNode* max() const;
 
     bool find(const T& val) const;
 
     void inorder(std::function<void (T)> traverser) const;
     
-    void insert(const T& value);
+    void insert(const T& key);
 
-    void remove(const T& value);
+    void remove(const T& key);
 
     int height() const;
 
@@ -90,6 +91,7 @@ private:
 
 private:
     AVLNode* m_root;
+    int m_nNodes = 0;
 };
 
 template <typename T>
@@ -111,10 +113,15 @@ inline bool AVLTree<T>::isEmpty() const
 }
 
 template <typename T>
-inline T AVLTree<T>::findMin() const
+inline typename AVLTree<T>::AVLNode* AVLTree<T>::min() const
 {
-    auto* node = _findMin(m_root);
-    return node ? node->value : T();
+    return _findMin(m_root);
+}
+
+template <typename T>
+inline typename AVLTree<T>::AVLNode *AVLTree<T>::max() const
+{
+    return _findMax(m_root);
 }
 
 template <typename T>
@@ -130,15 +137,16 @@ void AVLTree<T>::inorder(std::function<void(T)> traverser) const
 }
 
 template <typename T>
-void AVLTree<T>::insert(const T &value)
+void AVLTree<T>::insert(const T &key)
 {
-    m_root = _insert(value, m_root);
+    m_root = _insert(key, m_root);
+    ++m_nNodes;
 }
 
 template <typename T>
-void AVLTree<T>::remove(const T &value)
+void AVLTree<T>::remove(const T &key)
 {
-    m_root = _remove(value, m_root);
+    m_root = _remove(key, m_root);
 }
 
 template <typename T>
@@ -153,7 +161,7 @@ typename AVLTree<T>::AVLNode* AVLTree<T>::removeMin()
     auto* minNode = _findMin(m_root);
 
     if (minNode)
-        remove(minNode->value);
+        remove(minNode->key);
     
     return minNode;
 }
@@ -226,9 +234,9 @@ bool AVLTree<T>::_find(const T &val, AVLNode *node) const
     if (!node)
         return false;
 
-    if (val < node->value)
+    if (val < node->key)
         return _find(val, node->leftChild);
-    else if (val > node->value)
+    else if (val > node->key)
         return _find(val, node->rightChild);
     else
         return true;
@@ -240,9 +248,9 @@ typename AVLTree<T>::AVLNode* AVLTree<T>::_insert(const T &val, AVLNode *node)
     if (!node)
         return new AVLNode(val);
 
-    if (val < node->value)
+    if (val < node->key)
         node->leftChild = _insert(val, node->leftChild);
-    else if (val > node->value)
+    else if (val > node->key)
         node->rightChild =_insert(val, node->rightChild);
 
     update(node);
@@ -274,13 +282,12 @@ typename AVLTree<T>::AVLNode* AVLTree<T>::_remove(const T &val, AVLNode *node)
     if (!node)
         return nullptr;
 
-    if (val < node->value)
+    if (val < node->key)
         node->leftChild = _remove(val, node->leftChild);
-    else if (val > node->value)
+    else if (val > node->key)
         node->rightChild = _remove(val, node->rightChild);
     else
     {
-
         if (!node->leftChild)
         {
             return node->rightChild;
@@ -294,14 +301,14 @@ typename AVLTree<T>::AVLNode* AVLTree<T>::_remove(const T &val, AVLNode *node)
             if (node->leftChild->height > node->rightChild->height)
             {
                 AVLNode *temp = _findMax(node->leftChild);
-                node->value = temp->value;
-                node->leftChild = _remove(temp->value, node->leftChild);
+                node->key = temp->key;
+                node->leftChild = _remove(temp->key, node->leftChild);
             }
             else
             {
                 AVLNode* temp = _findMin(node->rightChild);
-                node->value = temp->value;
-                node->rightChild = _remove(temp->value, node->rightChild);
+                node->key = temp->key;
+                node->rightChild = _remove(temp->key, node->rightChild);
             }
         }
     }
@@ -318,7 +325,7 @@ void AVLTree<T>::_inorder(AVLNode *node, std::function<void(T)> traverser) const
         return;
 
     _inorder(node->leftChild, traverser);
-    traverser(node->value);
+    traverser(node->key);
     _inorder(node->rightChild, traverser);
 }
 
@@ -337,7 +344,7 @@ void AVLTree<T>::_predecessor(const T &val, AVLNode *node, AVLNode** predecessor
     if (!node)
         return;
 
-    if (node->value == val)
+    if (node->key == val)
     {
         if (node->leftChild)
         {
@@ -348,7 +355,7 @@ void AVLTree<T>::_predecessor(const T &val, AVLNode *node, AVLNode** predecessor
             *predecessorNode = n;
         }
     }
-    else if (node->value > val)
+    else if (node->key > val)
     {
         _predecessor(val, node->leftChild, predecessorNode);
     }
@@ -365,7 +372,7 @@ void AVLTree<T>::_successor(const T &val, AVLNode *node, AVLNode** successorNode
     if (!node)
         return;
     
-    if (node->value == val)
+    if (node->key == val)
     {
         if (node->rightChild)
         {
@@ -376,7 +383,7 @@ void AVLTree<T>::_successor(const T &val, AVLNode *node, AVLNode** successorNode
             *successorNode = n;
         }
     }
-    else if (node->value > val)
+    else if (node->key > val)
     {
         *successorNode = node;
         _successor(val, node->leftChild, successorNode);

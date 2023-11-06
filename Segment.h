@@ -9,84 +9,49 @@ struct Segment
 
     int id;
 
+    double value;
+
     Segment(const Point& p_, const Point& q_) :
-        id(-1)
+        id(-1),
+        p(p_),
+        q(q_)
     {
-        if (p_ < q_)
-        {
-            p = p_;
-            q = q_;
-        }
-        else
-        {
-            p = q_;
-            q = p_;
-        }
+        calculateValue(first().x);
     }
 
-    Segment(const Segment& segment) :
-        Segment(segment.p, segment.q)
+    const Point& first() const
     {
-        id = segment.id;
+        if (p.x <= q.x)
+            return p;
+        else
+            return q;
+    }
+
+    const Point& second() const
+    {
+        if (p.x <= q.x)
+            return q;
+        else
+            return p;
     }
 
     bool operator< (const Segment& other) const
     {
-        if (q.x < other.p.x && q.x < other.q.x)
-        {
-            return true;
-        }
-        else if (p.x < other.p.x && p.x < other.q.x)
-        {
-            return false;
-        }
-        else if (p.x > other.p.x && p.x < other.q.x)
-        {
-            return p.y > other.intercept(p.x);
-        }
-        else if (q.x > other.p.x && p.x < other.q.x)
-        {
-            return q.y > other.intercept(q.x);
-        }
-
-        return false;
+        return value > other.value;
     }
 
     bool operator> (const Segment& other) const
     {
-        if (q.x < other.p.x && q.x < other.q.x)
-        {
-            return false;
-        }
-        else if (p.x < other.p.x && p.x < other.q.x)
-        {
-            return true;
-        }
-        else if (p.x > other.p.x && p.x < other.q.x)
-        {
-            return p.y <= other.intercept(p.x);
-        }
-        else if (q.x > other.p.x && p.x < other.q.x)
-        {
-            return q.y <= other.intercept(q.x);
-        }
-
-        return false;
+        return value < other.value;
     }
 
     bool operator== (const Segment& other) const
     {
-        return p == other.p && q == other.q;
+        return value == other.value;
     }
 
-    double slope() const
+    void calculateValue(double x_)
     {
-        return (q.y - p.y) / (q.x - p.x);
-    }
-
-private:
-    double intercept(double x_) const
-    {
-        return slope() * (x_ - p.x) + p.y;
+        value = ((second().y - first().y) / (second().x - first().x)) * (x_ - first().x) + first().y;
     }
 };

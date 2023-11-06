@@ -15,7 +15,7 @@ LineSegmentIntersectionNaive: LineSegmentIntersectionNaive.o
 	$(CXX) LineSegmentIntersectionNaive.o -o LineSegmentIntersectionNaive -lgtest_main -lgtest; ./LineSegmentIntersectionNaive
 
 LineSegmentIntersectionSweepLine: LineSegmentIntersectionSweepLine.o
-	$(CXX) LineSegmentIntersectionSweepLine.o -o LineSegmentIntersectionSweepLine -lgtest_main -lgtest; ./LineSegmentIntersectionSweepLine
+	$(CXX) LineSegmentIntersectionSweepLine.o -o LineSegmentIntersectionSweepLine -lgtest_main -lgtest; # ./LineSegmentIntersectionSweepLine
 
 clean:
 	rm -f ConvexHullNaive ConvexHullGrahamScan ConvexHullJarvisMarch LineSegmentIntersectionNaive LineSegmentIntersectionSweepLine *.o
